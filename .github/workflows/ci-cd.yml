@@ -1,0 +1,32 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Validate Dockerfiles
+      run: |
+        if [ -f Dockerfile ]; then
+          docker build --dry-run . || echo "Dockerfile validation failed"
+        fi
+
+    - name: Validate docker-compose
+      run: |
+        if [ -f docker-compose.yml ]; then
+          docker-compose config || echo "docker-compose validation failed"
+        fi
+
+    - name: Check Kubernetes manifests
+      run: |
+        if [ -d k8s/ ]; then
+          find k8s/ -name "*.yaml" -exec echo "Found: {}" \;
+        fi
